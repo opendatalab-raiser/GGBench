@@ -6,7 +6,7 @@
 
 ```
 web/
-├── template.html          # 主页 HTML
+├── index.html          # 主页 HTML
 ├── README.md              # 使用说明
 ├── CONFIG.md              # 额外配置说明
 ├── static/
