@@ -1,0 +1,67 @@
+/* 排行榜样式 */
+
+.leaderboard {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2rem 0;
+}
+
+.leaderboard th,
+.leaderboard td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.leaderboard th {
+    background-color: #f5f5f5;
+    font-weight: 700;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.leaderboard thead tr:first-child th {
+    top: 0;
+    z-index: 12;
+}
+
+.leaderboard thead tr:nth-child(2) th {
+    top: 45px;
+    z-index: 11;
+}
+
+.leaderboard tr:hover {
+    background-color: #f9f9f9;
+}
+
+.best-score-text {
+    color: #485fc7;
+    font-weight: 700;
+}
+
+/* 排序指示器 */
+.leaderboard th[data-sort] {
+    cursor: pointer;
+    user-select: none;
+}
+
+.leaderboard th[data-sort]:hover {
+    background-color: #e8e8e8;
+}
+
+.leaderboard th[data-sort]::after {
+    content: ' ↕';
+    opacity: 0.5;
+    font-size: 0.8em;
+}
+
+.leaderboard th[data-sort].sort-asc::after {
+    content: ' ↑';
+    opacity: 1;
+}
+
+.leaderboard th[data-sort].sort-desc::after {
+    content: ' ↓';
+    opacity: 1;
+}

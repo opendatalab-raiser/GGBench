@@ -1,0 +1,46 @@
+/* 自定义样式文件 */
+/* 可以根据需要添加自定义样式 */
+
+.publication-title {
+    font-weight: 700;
+}
+
+.publication-subtitle {
+    margin-top: 1rem;
+}
+
+.publication-authors {
+    margin-top: 1.5rem;
+}
+
+.publication-links {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.link-block {
+    margin: 0.5rem;
+}
+
+.org-banner {
+    height: 3em;
+    margin: 1rem;
+}
+
+.mathvista {
+    font-family: 'Google Sans', sans-serif;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .publication-title {
+        font-size: 2rem !important;
+    }
+    
+    .publication-subtitle {
+        font-size: 1.5rem !important;
+    }
+}

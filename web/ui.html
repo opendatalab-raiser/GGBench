@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="description"
+        content="Are Video Models Ready as Zero-Shot Reasoners? An Empirical Study with the MME-COF Benchmark">
+    <meta name="keywords" content="MME-COF, Video Reasoning">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title> Are Video Models Ready as Zero-Shot Reasoners?</title>
+
+    <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+
+    <link rel="stylesheet" href="./static/css/bulma.min.css">
+    <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+    <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+    <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+    <link rel="stylesheet" href="./static/css/index.css">
+    <link rel="stylesheet" href="./static/css/leaderboard.css">
+
+    <style>
+        .columns.is-vcentered {
+            align-items: flex-start;
+        }
+
+        .columns.is-vcentered .column {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .columns.is-vcentered .column .question-section {
+            min-height: 5.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .columns.is-vcentered .column .question-section>p.is-size-7 {
+            min-height: 3.5rem;
+            display: block;
+        }
+
+        .columns.is-vcentered .column .prompt-section {
+            min-height: 6.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .columns.is-vcentered .column .prompt-section>p.is-size-7 {
+            min-height: 5rem;
+            display: block;
+        }
+
+        .columns.is-vcentered .column>p.has-text-weight-semibold:nth-of-type(1) {
+            margin-bottom: 0.5rem !important;
+        }
+
+        .columns.is-vcentered .column>p.is-size-7:nth-of-type(2) {
+            min-height: 3.5rem;
+            margin-bottom: 1rem !important;
+            display: block;
+        }
+
+        .columns.is-vcentered .column>p.has-text-weight-semibold:nth-of-type(3) {
+            margin-bottom: 0.5rem !important;
+        }
+
+        .columns.is-vcentered .column>p.is-size-7:nth-of-type(4) {
+            min-height: 5rem;
+            margin-bottom: 1rem !important;
+            display: block;
+        }
+
+        .columns.is-vcentered .column img {
+            margin-top: auto;
+        }
+
+        .takeaway.message.is-info {
+            border-left: none !important;
+            padding-left: 0 !important;
+        }
+
+        /* ------ 项目页骨架增强（filter + 卡片 + 折叠） ------ */
+        .rv-filterbar {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.92));
+            backdrop-filter: blur(6px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        /* --- Tabs：一行四个，最多三行 --- */
+        .rv-tabs {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            /* 一行4个 */
+            gap: .75rem;
+            padding: .75rem 1rem .25rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* 说明小字 */
+        .rv-help {
+            text-align: center;
+            font-size: .85rem;
+            color: #6b7280;
+            /* 灰色 */
+            margin: .25rem 0 .75rem;
+        }
+
+        /* 按钮“方圆”风格（圆角 8px） */
+        .rv-tab {
+            cursor: pointer;
+            padding: .55rem .75rem;
+            border-radius: 8px;
+            /* ← 方一点 */
+            border: 1px solid rgba(0, 0, 0, .10);
+            font-weight: 600;
+            font-size: .92rem;
+            background: #fff;
+            transition: transform .06s ease, background .2s ease, border .2s ease, box-shadow .2s ease;
+        }
+
+        .rv-tab:hover {
+            transform: translateY(-1px);
+            background: #f8faff;
+        }
+
+        .rv-tab.is-active {
+            background: #485fc7;
+            color: #fff;
+            border-color: #485fc7;
+            box-shadow: 0 2px 10px rgba(72, 95, 199, .25);
+        }
+
+        @media (max-width: 640px) {
+            .rv-tabs {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        .rv-hidden {
+            display: none !important;
+        }
+
+        .rv-card {
+            border: 1px solid rgba(0, 0, 0, .06);
+            border-radius: 10px;
+            overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .04);
+        }
+
+        .rv-card-media {
+            aspect-ratio: 4/3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fb;
+        }
+
+        .rv-card-media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .rv-card-body {
+            padding: .75rem .9rem;
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+        }
+
+        .rv-details {
+            border: 1px dashed rgba(0, 0, 0, .12);
+            border-radius: 8px;
+            padding: .5rem .75rem;
+            background: #fafbff;
+        }
+
+        .rv-details>summary {
+            cursor: pointer;
+            list-style: none;
+            font-weight: 700;
+            margin: .1rem 0 .4rem;
+        }
+
+        .rv-details>summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .rv-details pre {
+            white-space: pre-wrap;
+            word-break: break-word;
+            margin: .5rem 0 0;
+            max-height: 16rem;
+            overflow: auto;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+            font-size: .85rem;
+            line-height: 1.45;
+            background: #fff;
+            padding: .6rem .7rem;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 0, 0, .06);
+        }
+
+        .rv-clamp {
+            --rv-lines: 3;
+            display: -webkit-box;
+            -webkit-line-clamp: var(--rv-lines);
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .rv-toggle {
+            background: transparent;
+            border: none;
+            color: #485fc7;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .rv-actions {
+            display: flex;
+            gap: .5rem;
+            align-items: center;
+            justify-content: flex-end;
+            margin-top: .35rem;
+        }
+
+        .rv-copy {
+            border: 1px solid rgba(0, 0, 0, .12);
+            border-radius: 8px;
+            padding: .3rem .55rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: #fff;
+        }
+
+        .rv-copy:hover {
+            background: #f2f4ff;
+        }
+
+        .rv-summary {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .rv-summary-title {
+            font-weight: 700;
+        }
+
+        .rv-tip {
+            font-size: .76rem;
+            color: #777;
+            font-style: italic;
+        }
+
+        .rv-details[open] .rv-tip {
+            display: none;
+        }
+    </style>
+
+    <script type="text/javascript" src="static/js/sort-table.js" defer></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script defer src="./static/js/fontawesome.all.min.js"></script>
+    <script src="./static/js/bulma-carousel.min.js"></script>
+    <script src="./static/js/bulma-slider.min.js"></script>
+    <script src="./static/js/explorer-index.js"></script>
+    <script src="./static/js/question_card.js"></script>
+    <script src="./static/js/leaderboard_testmini.js"></script>
+    <script src="./data/results/output_folders.js" defer></script>
+    <script src="./data/results/model_scores.js" defer></script>
+    <script src="./visualizer/data/data_public.js" defer></script>
+</head>
+
+<body>
+
+
+    <nav class="navbar" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </a>
+        </div>
+        <div class="navbar-menu">
+            <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
+                <!-- <a class="navbar-item" href="https://keunhong.com">
+        <span class="icon">
+            <i class="fas fa-home"></i>
+        </span>
+        </a> -->
+                <div class="navbar-item has-dropdown is-hoverable">
+                    <a class="navbar-link">
+                        More Research
+                    </a>
+                    <div class="navbar-dropdown">
+                        <a class="navbar-item" href="https://github.com/ZiyuGuo99/Image-Generation-CoT">
+                            <b>Image_CoT</b>
+                            <p style="font-size:18px; display: inline; margin-left: 5px;">🔥</p>
+                        </a>
+                        <a class="navbar-item" href="https://github.com/CaraJ7/T2I-R1">
+                            <b>T2I-R1</b>
+                            <p style="font-size:18px; display: inline; margin-left: 5px;">🔥</p>
+                        </a>
+                        <a class="navbar-item" href="https://arxiv.org/pdf/2505.17017">
+                            <b>A Study on DPO vs. GRPO</b>
+                            <p style="font-size:18px; display: inline; margin-left: 5px;">🔥</p>
+                        </a>
+                        <a class="navbar-item" href="https://sciverse-cuhk.github.io/">
+                            SciVerse
+                        </a>
+                        <a class="navbar-item" href="https://mmecot.github.io/">
+                            MME-CoT
+                        </a>
+                        <a class="navbar-item" href="https://github.com/ZrrSkywalker/MAVIS">
+                            MAVIS
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </nav>
+
+
+    <section class="hero">
+        <div class="hero-body">
+            <div class="container is-max-desktop">
+                <div class="columns is-centered">
+                    <div class="column has-text-centered">
+                        <h1 class="title is-1 publication-title is-bold" style="font-size: 2.8rem;">
+                            <!-- <img src="static/images/0.png" style="width:1em;vertical-align: middle" alt="Logo"/> -->
+                            <span class="mathvista" style="vertical-align: middle">Are Video Models Ready as Zero-Shot
+                                Reasoners?</span>
+                        </h1>
+                        <h2 class="subtitle is-3 publication-subtitle">
+                            An Empirical Study with the MME-COF Benchmark
+                        </h2>
+                        <div class="is-size-5 publication-authors">
+                            <span class="author-block">
+                                <a href="https://ziyuguo99.github.io/">Ziyu Guo*</a><sup
+                                    style="color:#6fbf73;">1</sup><sup>†</sup>,
+                            </span>
+                            <span class="author-block">
+                                <a href="https://scholar.google.com/citations?user=Ii38p5oAAAAJ&hl=zh-CN">Xinyan
+                                    Chen*</a><sup style="color:#ed4b82;">2</sup>,
+                            </span>
+                            <span class="author-block">
+                                <a href="https://zrrskywalker.github.io/">Renrui Zhang*</a><sup
+                                    style="color:#ed4b82;">2</sup><sup>‡</sup>,
+                            </span>
+                            <span class="author-block">
+                                <a href="https://arctanxarc.github.io/">Ruichuan An*</a><sup
+                                    style="color:#ffac33;">3</sup>,
+                            </span>
+                            <span class="author-block">
+                                <a href="https://scholar.google.com/citations?user=UZSbtlsAAAAJ&hl=en">Yu Qi*</a><sup
+                                    style="color:#9400D3;">4</sup>,
+                            </span>
+                            <span class="author-block">
+                                <a href="https://caraj7.github.io/">Dongzhi Jiang</a><sup
+                                    style="color:#ed4b82;">2</sup>,
+                            </span>
+                            <br>
+                            <span class="author-block">
+                                <a href="https://lxtgh.github.io/">Xiangtai Li</a><sup style="color:#ed4b82;">2</sup>,
+                            </span>
+                            <span class="author-block">
+                                <a href="https://manyuan97.github.io/">Manyuan Zhang</a><sup
+                                    style="color:#ed4b82;">2</sup>,
+                            </span>
+
+                            <span class="author-block">
+                                <a href="http://www.ee.cuhk.edu.hk/~hsli/">Hongsheng Li</a><sup
+                                    style="color:#ed4b82;">2</sup>,
+                            </span>
+                            <span class="author-block">
+                                <a href="https://www.cse.cuhk.edu.hk/~pheng/">Pheng-Ann Heng</a><sup
+                                    style="color:#6fbf73;">1</sup>
+                            </span>
+                        </div>
+
+                        <div class="is-size-5 publication-authors">
+                            <span class="author-block">
+                                <sup style="color:#6fbf73;">1</sup>CUHK IMIXR&nbsp;&nbsp;&amp;&nbsp;&nbsp;
+                                <sup style="color:#ed4b82;">2</sup>MMLab&nbsp;&nbsp;&nbsp;
+                                <sup style="color:#ffac33;">3</sup>Peking University&nbsp;&nbsp;&nbsp;
+                                <sup style="color:#9400D3;">4</sup>Northeastern University
+                            </span>
+                        </div>
+
+                        <div class="is-size-6 publication-authors" style="margin-top:6px;">
+                            <span class="author-block">
+                                <sup>*</sup>Equal Contribution&nbsp;&nbsp;&nbsp;&nbsp;
+                                <sup>†</sup>Project Lead&nbsp;&nbsp;&nbsp;&nbsp;
+                                <sup>‡</sup>Corresponding Author
+                            </span>
+                        </div>
+
+
+                        <!-- <section>
+              <div class="section" id="org-banners" style="display:fle">
+                <a href="https://www.ucla.edu/" target="_blank" rel="external">
+                    <img class="center-block org-banner" src="static/images/ucla.png" style="height:3em">
+                </a>
+                <a href="https://www.washington.edu/" target="blank" class="ext-link">
+                    <img class="center-block org-banner" src="static/images/uw.png" style="height:3em">
+                </a>
+                <a href="https://www.microsoft.com/en-us/research/" target="_blank" rel="external">
+                    <img class="center-block org-banner" src="static/images/microsoft.png" style="height:3em">
+                </a>
+              </div>
+            </section> -->
+
+                        <div class="column has-text-centered">
+                            <div class="publication-links">
+                                <!-- PDF Link. -->
+                                <span class="link-block">
+                                    <a href="http://arxiv.org/abs/2510.26802"
+                                        class="external-link button is-normal is-rounded is-dark">
+                                        <span class="icon">
+                                            <i class="fas fa-file-pdf"></i>
+                                        </span>
+                                        <span>Paper</span>
+                                    </a>
+                                </span>
+                                <!-- <span class="link-block">
+                  <a href="https://video-cof.github.io/"
+                     class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                        <i class="ai ai-arxiv"></i>
+                    </span>
+                    <span>arXiv</span>
+                  </a>
+                </span> -->
+                                <!-- Video Link. -->
+                                <!-- <span class="link-block">
+                  <a href="https://www.youtube.com/watch?v=MrKrnHhk8IA"
+                     class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                        <i class="fab fa-youtube"></i>
+                    </span>
+                    <span>Video</span>
+                  </a>
+                </span> -->
+                                <!-- Code Link. -->
+                                <span class="link-block">
+                                    <a href="https://github.com/ZiyuGuo99/MME-CoF"
+                                        class="external-link button is-normal is-rounded is-dark">
+                                        <span class="icon">
+                                            <i class="fab fa-github"></i>
+                                        </span>
+                                        <span>Code</span>
+                                    </a>
+                                </span>
+                                <!-- Dataset Link. -->
+                                <span class="link-block">
+                                    <a href="https://huggingface.co/datasets/ZiyuG/MME-CoF"
+                                        class="external-link button is-normal is-rounded is-dark">
+                                        <span class="icon">
+                                            <!-- <i class="far fa-images"></i> -->
+                                            <p style="font-size:18px">🤗</p>
+                                            <!-- 🔗 -->
+                                        </span>
+                                        <span>MME-CoF</span>
+                                    </a>
+                                </span>
+                                <!-- Visualization Link. -->
+                                <span class="link-block">
+                                    <a href="https://video-cof.github.io/#reasoning-video-showcase"
+                                        class="external-link button is-normal is-rounded is-dark">
+                                        <span class="icon">
+                                            <p style="font-size:18px">🔮</p>
+                                        </span>
+                                        <span>Visualize</span>
+                                    </a>
+                                </span>
+                                <!-- Leaderboard Link. -->
+                                <span class="link-block">
+                                    <a href="https://video-cof.github.io/#leaderboard"
+                                        class="external-link button is-normal is-rounded is-dark">
+                                        <span class="icon">
+                                            <p style="font-size:18px">🏆</p>
+                                        </span>
+                                        <span>Leaderboard</span>
+                                    </a>
+                                </span>
+
+                                <!-- Twitter Link. -->
+                                <!-- <span class="link-block">
+                  <a href="https://twitter.com/lupantech/status/1717313355780964608"
+                     class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon"> -->
+                                <!-- <i class="far fa-images"></i> -->
+                                <!-- 💻🔗 -->
+                                <!-- <p style="font-size:18px">🌐</p> -->
+                                <!-- </span>
+                    <span>Twitter</span>
+                  </a>
+                </span> -->
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <section class="section">
+        <div class="container" style="margin-bottom: 2vh;">
+            <div class="columns is-centered has-text-centered">
+                <div class="column is-four-fifths">
+                    <h2 class="title is-3">TL;DR</h2>
+                    <div class="content has-text-justified">
+                        <p>
+                            We investigate a key question: <i><b>Are Video Models Ready as Zero-Shot Reasoners?</b></i>
+                            While modern video models can “see the world” and show promising ability to perceive,
+                            understand, and manipulate complex visual scenes, their actual reliability in visual
+                            reasoning remains unverified.
+                            <br>
+                            We conduct a comprehensive Chain-of-Frame (CoF) evaluation of the leading model Veo-3 across
+                            12 core dimensions and introduce <i><b>MME-CoF</b></i>, a compact and standardized benchmark
+                            for systematic CoF reasoning assessment. Our findings show that current video models are
+                            <b>not yet</b> dependable standalone zero-shot reasoners, but they demonstrate strong
+                            potential as powerful visual perception and scene-understanding modules to complement
+                            dedicated reasoning systems.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="columns is-centered">
+            <div class="content has-text-centered">
+                <img src="static/images/intro.png" alt="introduction" style="max-width: 48%;" />
+                <p><br><b>Overview of Our Study on the Reasoning Potential of Video Models.</b></p>
+            </div>
+        </div>
+        <br><br>
+        <div class="container" style="margin-bottom: 2vh;">
+            <div class="columns is-centered has-text-centered">
+                <div class="column is-four-fifths">
+                    <h2 class="title is-3">Introduction</h2>
+                    <div class="content has-text-justified">
+                        <p>
+                            Recent video generation models can produce high-fidelity, temporally coherent videos,
+                            indicating that they may encode substantial world knowledge. Beyond realistic synthesis,
+                            they also exhibit emerging behaviors indicative of visual perception, modeling, and
+                            manipulation. Yet, an important question still remains: Are video models ready to serve as
+                            zero-shot reasoners in challenging visual reasoning scenarios? In this work, we conduct an
+                            empirical study to comprehensively investigate this question, focusing on the leading and
+                            popular Veo-3. We evaluate its reasoning behavior across 12 dimensions, including spatial,
+                            geometric, physical, temporal, and embodied logic, systematically characterizing both its
+                            strengths and failure modes. To standardize this study, we curate the evaluation data into
+                            MME-COF, a compact benchmark that enables in-depth and thorough assessment of Chain-of-Frame
+                            (CoF) reasoning. Our findings reveal that while current video models demonstrate promising
+                            reasoning patterns on short-horizon spatial coherence, fine-grained grounding, and locally
+                            consistent dynamics, they remain limited in long-horizon causal reasoning, strict geometric
+                            constraints, and abstract logic. Overall, they are not yet reliable as standalone zero-shot
+                            reasoners, but exhibit encouraging signs as complementary visual engines alongside dedicated
+                            reasoning models.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="hero is-light is-small">
+        <div class="hero-body has-text-centered">
+            <h1 class="title is-1 mathvista"><span class="mathvista" style="vertical-align: middle">Deep-Dive Analysis
+                    on Veo-3</span></h1>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="columns is-centered has-text-centered">
+                <div class="column is-four-fifths">
+                    <div class="content has-text-justified">
+                        <p>
+                            We provide <em>the first</em> investigation of video models (Veo-3) to analyze their visual
+                            reasoning potential, detailing representative successes, characteristic errors, and the
+                            conditions under which CoF reasoning emerges, holds, or breaks.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Showcase + Category Boxes -->
+        <div class="container">
+            <div class="columns is-centered m-6">
+                <div class="column is-full has-text-centered content">
+                    <h2 id="reasoning-video-showcase" class="title is-3">Reasoning Video Showcase</h2>
+
+                    <div id="results-carousel" class="carousel results-carousel">
+                        <!-- === 每个 .box 一类，内部结构保持你的原样 === -->
+
+                        <div class="box m-5">
+                            <div class="content has-text-centered">
+                                <h3 class="subtitle is-5">Visual Detail Reasoning</h3>
+
+                                <div class="columns is-vcentered" style="margin-top: 1.5rem;">
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/visual_detail_reasoning/1_videos/generated_video_5.gif"
+                                            alt="case 1" data-question="What is the color of the Apple logo?"
+                                            data-prompt="Zoom in on the black bag with the Apple logo to focus on the logo's color. Static shot." />
+                                    </div>
+
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/visual_detail_reasoning/2_videos/generated_video_6.gif"
+                                            alt="case 2" data-question="What is the color of the handbag?"
+                                            data-prompt="Gradually zoom in on the group of people walking along the path, centering on the person carrying the handbag. Keep the surrounding park and benches softly blurred to emphasize the handbag’s color. Static shot." />
+                                    </div>
+
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/visual_detail_reasoning/3_videos/generated_video_2.gif"
+                                            alt="case 3"
+                                            data-question="Is the motorcycle on the left or right side of the dog?"
+                                            data-prompt="Smoothly zoom in on the dog near the lower right corner of the scene, then highlight the motorcycle parked near it. Keep the surrounding jeeps and people slightly blurred to emphasize spatial relation. Static shot." />
+                                    </div>
+
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/visual_detail_reasoning/4_videos/generated_video_1.gif"
+                                            alt="case 4"
+                                            data-question="Is the baby carriage on the left or right side of the cone?"
+                                            data-prompt="Gradually zoom in on the area near the cone along the pathway, centering both the cone and the baby carriage in the frame. Keep the surrounding trees and grass softly blurred to emphasize these two objects. Static shot." />
+                                    </div>
+                                </div>
+                            </div>
+                            <article class="message is-info takeaway mt-4">
+                                <div class="message-body has-text-left">
+                                    Veo-3 performs well in fine-grained attribute and spatial reasoning for salient,
+                                    well-grounded targets, but fails when objects are small, occluded, or cluttered. It
+                                    sometimes exhibits stylistic generation biases that lead to plausible yet
+                                    instruction-divergent outcomes.
+                                </div>
+                            </article>
+                        </div>
+
+                        <div class="box m-5">
+                            <div class="content has-text-centered">
+                                <h3 class="subtitle is-5">Visual Trace Reasoning</h3>
+
+                                <div class="columns is-vcentered" style="margin-top: 1.5rem;">
+
+                                    <!-- Case 1 -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/visual_trace_reasoning/1_videos/generated_video_1.gif"
+                                            alt="case 1"
+                                            data-question="Starting from the red dot, follow the given movement instructions and determine the final position. Down 1, left 1, left 1, up 1, up 1."
+                                            data-prompt="Starting at the red dot in the middle-right cell, animate step-by-step moves: go down 1 cell, left 1, left 1, up 1, and up 1, drawing arrows for each step and finishing with a glow around the final cell. Static shot." />
+                                    </div>
+
+                                    <!-- Case 2 -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/visual_trace_reasoning/4_videos/generated_video_1.gif"
+                                            alt="case 2"
+                                            data-question="The character must avoid falling into the frozen lake and reach the gift pack safely."
+                                            data-prompt="Animate the elf moving step by step toward the gift while carefully avoiding the icy frozen lake. Highlight the successful path and end with the elf standing beside the gift. Static shot." />
+                                    </div>
+
+                                    <!-- Case 3 -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/visual_trace_reasoning/6_videos/generated_video_1.gif"
+                                            alt="case 3"
+                                            data-question="The given picture is a maze, and the black lines represent walls that cannot be walked. Now you want to walk from the blue point to the red point. Is there a feasible path? If so, which of the green marks numbered 1-5 in the picture must be passed in the path?"
+                                            data-prompt="Animate a bright path tracing from the blue point at the top through the maze's open corridors toward the red point at the bottom, highlighting each green numbered mark it passes. Keep the maze and all walls fixed while the glowing path moves smoothly through the correct route. Static shot." />
+                                    </div>
+
+                                    <!-- Case 4 -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/visual_trace_reasoning/7_videos/generated_video_1.gif"
+                                            alt="case 4"
+                                            data-question="In the diagram, the red arrow is the initial arrow, and the green arrow is the final arrow. The arrow can move in four directions (forward, backward, left, right), where 'forward' always refers to the current direction the arrow is pointing. After each movement, the arrow's direction is updated to the direction of movement. Which of the following paths can make the arrow move from the starting position to the ending position?"
+                                            data-prompt="Create a 2D animation based on the provided diagram. The red arrow is the initial arrow, and the green arrow is the final arrow. The arrow can move in four directions (forward, backward, left, right), where 'forward' always refers to the current direction the arrow is pointing. After each movement, the arrow's direction is updated to the direction of movement. Movement commands: - The red arrow moves forward for 1 unit. - The red arrow moves left for 1 unit (relative to its new current direction after step 1). Then turns green. Scene: No change in scene composition. No change in the layout of the diagram. Camera: Static camera. No zoom. No pan. No glitches, noise, or artifacts." />
+                                    </div>
+
+                                    <!-- Case 5 -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/visual_trace_reasoning/8_videos/generated_video_1.gif"
+                                            alt="case 5"
+                                            data-question="What are the advantages of the green route and the red route respectively?"
+                                            data-prompt="Two small characters start from the same purple origin at the same time, and move along the red and green paths toward another purple destination at the same speed. Static camera, no zoom, no pan." />
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <article class="message is-info takeaway mt-4">
+                                <div class="message-body has-text-left">
+                                    Veo-3 can produce locally coherent, short-horizon trace animations in simple,
+                                    low-branching scenarios, but it does not reliably execute long-horizon plans or
+                                    rule-grounded sequences.
+                                </div>
+                            </article>
+                        </div>
+
+                        <div class="box m-5">
+                            <div class="content has-text-centered">
+                                <h3 class="subtitle is-5">Real-world Spatial Reasoning</h3>
+
+                                <div class="columns is-vcentered" style="margin-top: 1.5rem;">
+                                    <!-- I -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/real_world_spatial_reasoning/1_videos/generated_video_1.gif"
+                                            alt="case 1"
+                                            data-question="The balcony is north relative to the door, in which direction on the balcony is the chair?"
+                                            data-prompt="A red arrow point from the green chair toward the balcony. Another red arrow point from the door to the balcony. Static camera view, no zoom or pan." />
+                                    </div>
+
+                                    <!-- II -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/real_world_spatial_reasoning/2_videos/generated_video_1.gif"
+                                            alt="case 2"
+                                            data-question="From the perspective of the player wearing jersey number 10 in purple, where is the basketball?"
+                                            data-prompt="An arrow points from the player wearing jersey number 10 in purple to the basketball. Static camera view, no zoom or pan." />
+                                    </div>
+
+                                    <!-- III -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/real_world_spatial_reasoning/4_videos/generated_video_1.gif"
+                                            alt="case 3"
+                                            data-question="From the dunker’s viewpoint, which white-uniformed player is the farthest from them?"
+                                            data-prompt="The image transitions to a depth-map of the scene: Darker colors represent pixels further from the camera, lighter colors represent pixels closer to the camera. The exact color map to use is provided on the right side of the image. Static scene, no pan, no zoom, no dolly." />
+                                    </div>
+
+                                    <!-- IV -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/real_world_spatial_reasoning/6_videos/generated_video_1.gif"
+                                            alt="case 4"
+                                            data-question="If you are facing the washing machine, how should you walk to the stove and face the stove?"
+                                            data-prompt="The camera slowly and smoothly elevates from its current isometric view, gradually rising upwards while maintaining focus on the apartment layout. It continues to ascend until it reaches a complete overhead, bird's-eye perspective, providing a full top-down view of the entire floor plan, displaying all rooms and furniture clearly from above. The movement is fluid and controlled, ending with a static shot from the high vantage point." />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <article class="message is-info takeaway mt-4">
+                                <div class="message-body has-text-left">
+                                    While Veo-3 exhibits an emerging ability for simple real-world spatial reasoning,
+                                    its capability remains insufficient for handling more complex spatial understanding
+                                    tasks.
+                                </div>
+                            </article>
+                        </div>
+
+                        <div class="box m-5">
+                            <div class="content has-text-centered">
+                                <h3 class="subtitle is-5">3D Geometry Reasoning</h3>
+
+                                <div class="columns is-vcentered" style="margin-top: 1.5rem;">
+
+                                    <!-- I -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/3D_geometry_reasoning/2_videos/generated_video_1.gif"
+                                            alt="case 1" data-question="Move the object up."
+                                            data-prompt="Move the object up. Static camera view, no zoom or pan, and the perspective of the object remains unchanged throughout." />
+                                    </div>
+
+                                    <!-- II -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/3D_geometry_reasoning/3_videos/generated_video_1.gif"
+                                            alt="case 2"
+                                            data-question="Move the object to the left along the y-axis and up."
+                                            data-prompt="A hand moves the object to the left along the y-axis and then moves it up. Static camera view, no zoom or pan, and the perspective of the object remains unchanged throughout." />
+                                    </div>
+
+                                    <!-- III -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/3D_geometry_reasoning/1_videos/generated_video_1.gif"
+                                            alt="case 3"
+                                            data-question="Check out a net with 6 faces below: Can the net be folded to form a cube, yes or no?"
+                                            data-prompt="The net is folded to form a single cube, with folding edges clearly shown. Static camera perspective, no zoom or pan." />
+                                    </div>
+
+                                    <!-- IV -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/3D_geometry_reasoning/4_videos/generated_video_1.gif"
+                                            alt="case 4"
+                                            data-question="The sequence of moves that turns the first cube stack into the final one is: (1,0,0)y+ (1,1,0)y- (2,1,0)y+"
+                                            data-prompt="Smoothly zoom in to the 'Initial State' figure. The yellow block, starting at (1,0,0), moves one unit in the positive Y direction to position (1,1,0). Then, move back to (1,0,0). The cyan block, starting at (2,0,0), moves one unit in the positive Y direction to position (2,1,0), exchanging the position with the purple block. Static shot. No pan. No glitches, noise, or artifacts." />
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <article class="message is-info takeaway mt-4">
+                                <div class="message-body has-text-left">
+                                    Veo-3 exhibits emerging reasoning potential on basic 3D transformations but breaks
+                                    down on complex or multi-step geometry, often yielding misaligned or
+                                    self-intersecting structures. Its 3D geometric reasoning remains fragile, revealing
+                                    substantial gaps in its ability to function as a reliable 3D geometry reasoner.
+                                </div>
+                            </article>
+                        </div>
+
+                        <div class="box m-5">
+                            <div class="content has-text-centered">
+                                <h3 class="subtitle is-5">2D Geometry Reasoning</h3>
+
+                                <div class="columns is-vcentered" style="margin-top: 1.5rem;">
+
+                                    <!-- I -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/2D_geometry_reasoning/1_videos/generated_video_1.gif"
+                                            alt="case 1"
+                                            data-question="In the figure shown, let 'n' represent the length of side AB of the inscribed rectangle ABCD, where n is an undetermined value. With BC equal to 6.0 and the diameter of circle O equal to 10.0, what is the value of 'n'?"
+                                            data-prompt="A line connecting point A and point C. The video ends once the connection process is complete. Static view, no zoom or pan." />
+                                    </div>
+
+                                    <!-- II -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/2D_geometry_reasoning/2_videos/generated_video_1.gif"
+                                            alt="case 2"
+                                            data-question="The figure presented depicts a square designated as ABCD. Within this square, point M is the midpoint of side AB, while point N is the midpoint of the opposing side CD. Additionally, point O is located at the midpoint of segment CN. Your task is to draw the segment MO. It is given that the length of segment AM is represented by t. The objective is to determine which of the following expressions accurately represents the length of the segment MO in terms of t."
+                                            data-prompt="Smoothly connecting point M and point N. The video ends once the connection process is complete. Static view, no zoom or pan." />
+                                    </div>
+
+                                    <!-- III -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/2D_geometry_reasoning/3_videos/generated_video_1.gif"
+                                            alt="case 3"
+                                            data-question="AB equals to 8.0. What would the area of the entire shape ABCD be?"
+                                            data-prompt="Smoothly connecting point C and point D with a line. The video ends once the connection process is complete. Static view, no zoom or pan." />
+                                    </div>
+
+                                    <!-- IV -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/2D_geometry_reasoning/4_videos/generated_video_1.gif"
+                                            alt="case 4"
+                                            data-question="Check out a Tangram puzzle below. The left panel is an empty Tangram puzzle, while the right panel shows available pieces to complete the puzzle. Keep in mind that you can rotate or flip the pieces. Can the Tangram puzzle be completed with the available pieces, yes or no?"
+                                            data-prompt="Place piece A with its upper-left corner at (x, y) = (0, 3)." />
+                                    </div>
+
+                                    <!-- V -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/2D_geometry_reasoning/7_videos/generated_video_1.gif"
+                                            alt="case 5"
+                                            data-question="Connect the black dots in the image sequentially with straight lines according to the edge numbers (i.e., connect dot 1 to dot 2, dot 2 to dot 3, and so on). The final result will form a simple line drawing. What does this drawing represent?"
+                                            data-prompt="Animate the dots connecting sequentially from 1 to 25, each straight line appearing smoothly until the full outline emerges. Keep the background with the smiling sun and plants unchanged. Static shot." />
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <article class="message is-info takeaway mt-4">
+                                <div class="message-body has-text-left">
+                                    Veo-3 shows initial 2D geometric reasoning ability but still falls short of
+                                    consistent, constraint-aware geometric understanding, remaining far from a robust
+                                    geometric reasoner.
+                                </div>
+                            </article>
+                        </div>
+
+                        <div class="box m-5">
+                            <div class="content has-text-centered">
+                                <h3 class="subtitle is-5">Physics-based Reasoning</h3>
+
+                                <div class="columns is-vcentered" style="margin-top: 1.5rem;">
+
+                                    <!-- I -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/physics_based_reasoning/1_videos/generated_video_1.gif"
+                                            alt="case 1"
+                                            data-question="The figure shows a rough semicircular track whose ends are at a vertical height h. A block placed at point P at one end of the track is released from rest and slides past the bottom of the track. Which of the following is true of the height to which the block rises on the other side of the track?"
+                                            data-prompt="Show the rough semicircular track with height label h and a block at P; release it, add faint friction streaks as it slides down and up the right side, stopping below the rim. Show the move quickly and completely. Static shot." />
+                                    </div>
+
+                                    <!-- II -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/physics_based_reasoning/2_videos/generated_video_1.gif"
+                                            alt="case 2"
+                                            data-question="The red ball moves in the direction indicated by the blue arrow and bounces off the black side walls upon collision; the component of its velocity perpendicular to the wall reverses in direction but maintains its magnitude, while the component parallel to the wall remains unchanged. Based on this behavior, please estimate which numbered brick (from 1 to 10) at the top the red ball will hit first."
+                                            data-prompt="Animate the red ball moving along the blue arrow's direction, bouncing off the black walls according to reflection rules, keeping speed consistent. Continue its path upward until it reaches and collides with one of the numbered top bricks. Static shot." />
+                                    </div>
+
+                                    <!-- III -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/physics_based_reasoning/4_videos/generated_video_1.gif"
+                                            alt="case 3"
+                                            data-question="Think about the magnetic force between the magnets in each pair."
+                                            data-prompt="Dynamically depict the attraction between magnets, paying attention to speed and intensity. Static shot." />
+                                    </div>
+
+                                    <!-- IV -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/physics_based_reasoning/5_videos/generated_video_1.gif"
+                                            alt="case 4"
+                                            data-question="The orange gear is fixed on the stationary green gear. If the orange gear rotates counterclockwise in the given view, what is the motion of the yellow gear relative to the orange gear?"
+                                            data-prompt="Animate the provided planetary gear system. The orange gear rotates counterclockwise. The orange gear is fixed on the green gear. The central orange sun gear rotates counterclockwise, driving the yellow planet gear. All components must maintain their relative axial positions and proper gear meshing. Static camera, no zoom or pan." />
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <article class="message is-info takeaway mt-4">
+                                <div class="message-body has-text-left">
+                                    Veo-3 often generates visually plausible short-term dynamics, but it systematically
+                                    fails to preserve quantitative physical constraints (energy, momentum), causal
+                                    ordering, and contact mechanics in frictional, force-driven, or mechanically
+                                    constrained scenarios. Thus, its outputs are somewhat useful for qualitative
+                                    illustration but are not reliable for quantitative physics inference or causal
+                                    prediction.
+                                </div>
+                            </article>
+                        </div>
+
+                        <div class="box m-5">
+                            <div class="content has-text-centered">
+                                <h3 class="subtitle is-5">Rotation Reasoning</h3>
+
+                                <div class="columns is-vcentered" style="margin-top: 1.5rem;">
+
+                                    <!-- I -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/rotation_reasoning/1_videos/generated_video_1.gif"
+                                            alt="case 1" data-question="Is the frontmost skier wearing a scarf?"
+                                            data-prompt="Rotate the scene 45 degrees clockwise. Then draw bounding boxes around the frontmost skiing character." />
+                                    </div>
+
+                                    <!-- II -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/rotation_reasoning/2_videos/generated_video_1.gif"
+                                            alt="case 2"
+                                            data-question="Looking up from the floor, how many rows of drinks are in the leftmost vending machine?"
+                                            data-prompt="Rotate the scene 180 degrees clockwise. Then draw a bounding box around the leftmost vending machine." />
+                                    </div>
+
+                                    <!-- III -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/rotation_reasoning/3_videos/generated_video_1.gif"
+                                            alt="case 3" data-question="On which floors are the 'IKEA' labels located?"
+                                            data-prompt="Rotate the video frame 90 degrees counterclockwise in the 2D plane, then draw bounding boxes around each 'IKEA' label." />
+                                    </div>
+
+                                    <!-- IV -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/rotation_reasoning/4_videos/generated_video_1.gif"
+                                            alt="case 4"
+                                            data-question="Which grid can be obtained by rotating the grid only?"
+                                            data-prompt="The entire 'Original' grid figure performs one smooth, continuous 360-degree rotation clockwise within its own 2D plane. The camera stays static, with no pan." />
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <article class="message is-info takeaway mt-4">
+                                <div class="message-body has-text-left">
+                                    Veo-3 exhibits only a superficial understanding of rotation reasoning. While it can
+                                    approximate small planar rotations, it fails to preserve geometric consistency under
+                                    larger or compound transformations.
+                                </div>
+                            </article>
+                        </div>
+
+                        <div class="box m-5">
+                            <div class="content has-text-centered">
+                                <h3 class="subtitle is-5">Table and Chart Reasoning</h3>
+
+                                <div class="columns is-vcentered" style="margin-top: 1.5rem;">
+
+                                    <!-- I -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/table_and_chart_reasoning/1_videos/generated_video_1.gif"
+                                            alt="case 1"
+                                            data-question="What is the sum of footwear manufacturing establishments in Nova Scotia and Manitoba as of December 2020?"
+                                            data-prompt="Start with smoothly zooming in to focus on the 'Nova Scotia' row. Then smoothly zoom out to the full view of the chart. End with smoothly zooming in to focus on the 'Manitoba' row. The chart itself, including all its data, lines, and labels, must remain completely static and unchanged throughout the video." />
+                                    </div>
+
+                                    <!-- II -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/table_and_chart_reasoning/2_videos/generated_video_1.gif"
+                                            alt="case 2" data-question="In the year 2014, which opinion is dominant?"
+                                            data-prompt="Start with a static, full view of the chart. Then smoothly zoom the camera in to focus on the vertical area corresponding to the year 2014. The chart itself, including all its data, lines, and labels, must remain completely static and unchanged throughout the video." />
+                                    </div>
+
+                                    <!-- III -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/table_and_chart_reasoning/3_videos/generated_video_1.gif"
+                                            alt="case 3"
+                                            data-question="What is the color of smallest section in the chart?"
+                                            data-prompt="Zoom in to focus on the smallest section in the chart. The chart itself, including all its data, lines, and labels, must remain completely static and unchanged throughout the video." />
+                                    </div>
+
+                                    <!-- IV -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/table_and_chart_reasoning/4_videos/generated_video_1.gif"
+                                            alt="case 4"
+                                            data-question="What is the end market for the Engineered Systems segment?"
+                                            data-prompt="Draw a bounding box around the end market for the Engineered Systems segment. The table itself, including all its text, lines, and labels, must remain completely static and unchanged throughout the video." />
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <article class="message is-info takeaway mt-4">
+                                <div class="message-body has-text-left">
+                                    Veo-3 demonstrates emerging competence and potential in structured visual
+                                    understanding, but still falls short of functioning as a precise and reliable
+                                    chart-table reasoner.
+                                </div>
+                            </article>
+                        </div>
+
+                        <div class="box m-5">
+                            <div class="content has-text-centered">
+                                <h3 class="subtitle is-5">Object Counting Reasoning</h3>
+                                <div class="columns is-vcentered" style="margin-top: 1.5rem;">
+
+                                    <!-- Case 1 -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/object_counting_reasoning/1_videos/generated_video_1.gif"
+                                            alt="case 1"
+                                            data-question="How many unit squares does the line segment pass through in the given grid diagram?"
+                                            data-prompt="A scanner dot moves along the black line from bottom-left to top-right. Each time the dot enters a new grid square, that square turns yellow and remains yellow. Static camera, no zoom." />
+                                    </div>
+
+                                    <!-- Case 2 -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/object_counting_reasoning/2_videos/generated_video_1.gif"
+                                            alt="case 2" data-question="How many rectangles are there in the figure?"
+                                            data-prompt="Highlight only the rectangles in the image in bright yellow. Do not highlight squares, triangles, circles, or any other shapes. Static camera, no zoom, no pan." />
+                                    </div>
+
+                                    <!-- Case 3 -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/object_counting_reasoning/3_videos/generated_video_1.gif"
+                                            alt="case 3" data-question="How many rectangles are there in the figure?"
+                                            data-prompt="Label all fish in the image with increasing numbers (1, 2, 3, …). The fish remain static. The camera remains still, with no zoom or pan." />
+                                    </div>
+
+                                    <!-- Case 4 -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/object_counting_reasoning/4_videos/generated_video_1.gif"
+                                            alt="case 4"
+                                            data-question="How many tiny things have the same material as the green motorbike?"
+                                            data-prompt="Draw bounding boxes around the tiny objects that share the same material as the green motorbike. Static camera, no zoom, no pan." />
+                                    </div>
+
+                                    <!-- Case 5 -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/object_counting_reasoning/5_videos/generated_video_1.gif"
+                                            alt="case 5"
+                                            data-question="There is a small yellow object to the left of the tiny metal motorbike; how many brown metal mountain bikes are to the right of it?"
+                                            data-prompt="Draw bounding boxes around the brown metal mountain bikes located to the right of the yellow object. Static camera, no zoom, no pan." />
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <article class="message is-info takeaway mt-4">
+                                <div class="message-body has-text-left">
+                                    Veo-3 demonstrates basic counting capability but lacks the spatial control and
+                                    robustness required for reliable object enumeration in dynamic or complex scenes.
+                                </div>
+                            </article>
+                        </div>
+
+                        <div class="box m-5">
+                            <div class="content has-text-centered">
+                                <h3 class="subtitle is-5">GUI Reasoning</h3>
+
+                                <p style="font-size: 0.9rem; margin-bottom: 1rem;">
+                                    Select a case to view its question and prompt.
+                                </p>
+
+                                <div class="columns is-vcentered" style="margin-top: 1.5rem;">
+
+                                    <!-- GUI Case 1 -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/gui_reasoning/1_videos/generated_video_1.gif"
+                                            alt="case 1" data-question="Collapse the pkgs folder."
+                                            data-prompt="Click the pkgs folder to collapse it. Do not move or zoom the camera. The interface must remain static except for the click." />
+                                    </div>
+
+                                    <!-- GUI Case 2 -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/gui_reasoning/2_videos/generated_video_1.gif"
+                                            alt="case 2"
+                                            data-question="Click the calendar icon located to the right of the flight date options, next to the June 6 price display."
+                                            data-prompt="Click the calendar icon to the right of the flight date selector and immediately next to the price display for June 6. Static field of view, no zoom or pan." />
+                                    </div>
+
+                                    <!-- GUI Case 3 -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/gui_reasoning/3_videos/generated_video_1.gif"
+                                            alt="case 3"
+                                            data-question="Click the navigation arrow located on the right side of the Browse by Category carousel."
+                                            data-prompt="Click the right navigation arrow on the Browse by Category carousel. The camera remains still; only the clicking action occurs." />
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <article class="message is-info takeaway mt-4">
+                                <div class="message-body has-text-left">
+                                    Veo-3 demonstrates a limited awareness of GUI click actions, imitating interaction
+                                    behaviors without fully grasping the underlying functional logic.
+                                </div>
+                            </article>
+                        </div>
+
+                        <div class="box m-5">
+                            <div class="content has-text-centered">
+                                <h3 class="subtitle is-5">Embodied Reasoning</h3>
+
+                                <p style="font-size: 0.9rem; margin-bottom: 1rem;">
+                                    Select a case to view its question and prompt.
+                                </p>
+
+                                <div class="columns is-vcentered" style="margin-top: 1.5rem;">
+
+                                    <!-- Embodied Case 1 -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/embodied_reasoning/1_videos/generated_video_1.gif"
+                                            alt="case 1"
+                                            data-question="Which point corresponds to the affordance for manipulating the banana?"
+                                            data-prompt="Pan the camera toward the banana while keeping the tray edges visible. Maintain fixed scale. Sweep once along its inner curve from stem to tip at constant speed, then hold at the midpoint. No zoom or camera tilt." />
+                                    </div>
+
+                                    <!-- Embodied Case 2 -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/embodied_reasoning/2_videos/generated_video_1.gif"
+                                            alt="case 2"
+                                            data-question="Which set of 4 points forms the correct trajectory to place the cucumber into the pot?"
+                                            data-prompt="Show the cucumber's start and the pot opening in frame. Sweep once at fixed scale from start toward the pot, pausing briefly at four evenly spaced trajectory points, then hold at start and end. Static camera, no zoom." />
+                                    </div>
+
+                                    <!-- Embodied Case 3 -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/embodied_reasoning/3_videos/generated_video_1.gif"
+                                            alt="case 3" data-question="Is the container sealed?"
+                                            data-prompt="Pan smoothly to reveal both the lid-body interface and the spout/cap area. Maintain fixed scale and exposure. No geometry changes, no zoom, steady motion only." />
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <article class="message is-info takeaway mt-4">
+                                <div class="message-body has-text-left">
+                                    Veo-3's capabilities are currently limited to basic object recognition rather than
+                                    true embodied reasoning. It lacks the necessary planning and stability to reliably
+                                    interpret and act upon dynamic or spatially constrained instructions, indicating its
+                                    limitations in understanding and reasoning of real-world interactions.
+                                </div>
+                            </article>
+                        </div>
+
+                        <div class="box m-5">
+                            <div class="content has-text-centered">
+                                <h3 class="subtitle is-5">Medical Reasoning</h3>
+
+                                <div class="columns is-vcentered" style="margin-top: 1.5rem;">
+
+                                    <!-- Medical Case 1 -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/medical_reasoning/1_videos/generated_video_1.gif"
+                                            alt="case 1"
+                                            data-question="What is the distribution pattern of the stenotic segments?"
+                                            data-prompt="Display the full sagittal lumbar spine. Sweep smoothly from L1 to S1 at constant speed, showing alternating narrow and normal disc levels. Maintain fixed geometry, contrast, and no content alteration. End centered on representative stenotic and normal levels." />
+                                    </div>
+
+                                    <!-- Medical Case 2 -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/medical_reasoning/2_videos/generated_video_1.gif"
+                                            alt="case 2" data-question="Is cardiomegaly present?"
+                                            data-prompt="Start with the full PA chest field. Adjust framing slightly to include the widest thoracic diameter and whole cardiac silhouette at fixed scale. Hold still for CTR observation. No change in brightness, contrast, or geometry." />
+                                    </div>
+
+                                    <!-- Medical Case 3 -->
+                                    <div class="column">
+                                        <img class="video-gif"
+                                            src="static/images/videos/medical_reasoning/3_videos/generated_video_1.gif"
+                                            alt="case 3" data-question="Which lobe contains the pulmonary nodule?"
+                                            data-prompt="Show the full axial CT level. Pan and zoom gently toward the left lung to keep the nodule and adjacent fissure visible together. Maintain standard CT windowing and fixed anatomy. No slice change or deformation." />
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <article class="message is-info takeaway mt-4">
+                                <div class="message-body has-text-left">
+                                    Veo-3's failure to handle the reasoning in the medical domain, causing distortion
+                                    even on simple zoom-ins, highlights its limited grasp of specialized, non-general
+                                    knowledge.
+                                </div>
+                            </article>
+                        </div>
+
+                    </div> <!-- /#results-carousel -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        (function () {
+            const showcaseRoot = document.getElementById('results-carousel');
+            if (!showcaseRoot) return;
+
+            const column = showcaseRoot.closest('.column') || showcaseRoot.parentElement;
+            const showcaseTitle = column ? column.querySelector('h2.title.is-3') : null;
+            if (!showcaseTitle) return;
+
+            const categoryBoxes = Array.from(showcaseRoot.querySelectorAll('.box.m-5'))
+                .filter(box => box.querySelector('h3.subtitle'));
+            if (categoryBoxes.length === 0) return;
+
+            // 标注类别 & 索引
+            categoryBoxes.forEach((box, idx) => {
+                const title = box.querySelector('h3.subtitle')?.textContent?.trim() || `Category ${idx + 1}`;
+                const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                box.dataset.category = slug;
+                box.dataset.categoryLabel = title;
+                box.dataset.carouselIndex = String(idx);
+            });
+
+            // 过滤条（放在标题上方）
+            const bar = document.createElement('div');
+            bar.className = 'rv-filterbar';
+            const tabsWrap = document.createElement('div');
+            tabsWrap.className = 'rv-tabs';
+            bar.appendChild(tabsWrap);
+
+            const help = document.createElement('p');
+            help.className = 'rv-help';
+            help.textContent = 'Select a category to navigate to representative video reasoning cases.';
+            bar.appendChild(help);
+
+            showcaseTitle.parentElement.insertBefore(bar, showcaseTitle);
+
+            // 生成类别按钮（无 All）
+            categoryBoxes.forEach((box, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'rv-tab';
+                btn.textContent = box.dataset.categoryLabel || `Category ${idx + 1}`;
+                btn.dataset.index = box.dataset.carouselIndex;
+                btn.setAttribute('aria-pressed', 'false');
+                tabsWrap.appendChild(btn);
+            });
+
+            // bulmaCarousel 实例（关闭导航与分页）
+            let carouselInstance = null;
+            function ensureCarouselInstance() {
+                try {
+                    if (window.bulmaCarousel) {
+                        const arr = window.bulmaCarousel.attach('#results-carousel', {
+                            slidesToScroll: 1,
+                            slidesToShow: 1,
+                            navigation: false,   // ← 关闭左右箭头
+                            pagination: false,   // ← 关闭圆点
+                            autoplay: false,
+                            loop: false
+                        }) || [];
+                        carouselInstance = arr.find(inst => inst && (inst.element === showcaseRoot || inst.root === showcaseRoot)) || arr[0] || null;
+                    }
+                } catch (e) { }
+            }
+
+            function goTo(idx) {
+                idx = Math.max(0, Math.min(idx, categoryBoxes.length - 1));
+                if (!carouselInstance) ensureCarouselInstance();
+                try {
+                    if (carouselInstance) {
+                        if (typeof carouselInstance.to === 'function') return carouselInstance.to(idx);
+                        if (typeof carouselInstance.moveTo === 'function') return carouselInstance.moveTo(idx);
+                        if (typeof carouselInstance.slideTo === 'function') return carouselInstance.slideTo(idx);
+                    }
+                } catch (e) { }
+                // 兜底：直接滚动到对应 box（非理想，但导航禁用时基本不会走到这）
+                categoryBoxes[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            function activateTab(btn) {
+                tabsWrap.querySelectorAll('.rv-tab').forEach(b => {
+                    b.classList.remove('is-active'); b.setAttribute('aria-pressed', 'false');
+                });
+                btn.classList.add('is-active'); btn.setAttribute('aria-pressed', 'true');
+            }
+
+            tabsWrap.addEventListener('click', (e) => {
+                const btn = e.target.closest('.rv-tab'); if (!btn) return;
+                activateTab(btn);
+                goTo(parseInt(btn.dataset.index || '0', 10));
+                bar.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+
+            // —— 只允许通过 Tab 切换：彻底禁用其他交互 —— //
+            function hardDisableCarouselInteractions() {
+                // 1) 移除/隐藏可能残留的箭头与圆点
+                const style = document.createElement('style');
+                style.textContent = `
+        #results-carousel .carousel-nav,
+        #results-carousel .carousel-bullets,
+        #results-carousel [data-slide] {
+          display: none !important;
+          pointer-events: none !important;
+        }
+      `;
+                document.head.appendChild(style);
+
+                // 2) 禁用键盘左右箭头影响
+                window.addEventListener('keydown', (e) => {
+                    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                        if (showcaseRoot.contains(document.activeElement)) {
+                            e.stopPropagation(); e.preventDefault();
+                        }
+                    }
+                }, true);
+            }
+
+
+            ensureCarouselInstance();
+            hardDisableCarouselInteractions();
+
+            // 默认选第一个
+            const first = tabsWrap.querySelector('.rv-tab');
+            if (first) { activateTab(first); }
+
+            // ---- GIF 卡片化（保留你已有逻辑） ----
+            const gifs = Array.from(showcaseRoot.querySelectorAll('img.video-gif'));
+            gifs.forEach(img => {
+                if (img.closest('.rv-card')) return;
+                const q = img.dataset.question || '';
+                const p = img.dataset.prompt || '';
+
+                const card = document.createElement('div'); card.className = 'rv-card';
+                const media = document.createElement('div'); media.className = 'rv-card-media';
+                img.parentNode.insertBefore(card, img);
+                media.appendChild(img); card.appendChild(media);
+
+                const body = document.createElement('div'); body.className = 'rv-card-body'; card.appendChild(body);
+
+                if (q) {
+                    const qWrap = document.createElement('div');
+                    const label = document.createElement('div'); label.style.fontWeight = '700'; label.textContent = 'Question';
+                    const text = document.createElement('div'); text.className = 'rv-clamp'; text.style.setProperty('--rv-lines', 3); text.textContent = q;
+                    qWrap.appendChild(label); qWrap.appendChild(text);
+                    if (q.length > 50) {
+                        const toggle = document.createElement('button'); toggle.className = 'rv-toggle'; toggle.textContent = 'Expand';
+                        toggle.addEventListener('click', () => {
+                            const clamped = text.classList.contains('rv-clamp');
+                            if (clamped) { text.classList.remove('rv-clamp'); toggle.textContent = 'Collapse'; }
+                            else { text.classList.add('rv-clamp'); toggle.textContent = 'Expand'; }
+                        });
+                        qWrap.appendChild(toggle);
+                    }
+                    body.appendChild(qWrap);
+                }
+
+                if (p) {
+                    const det = document.createElement('details'); det.className = 'rv-details';
+                    const sum = document.createElement('summary'); sum.className = 'rv-summary';
+                    sum.innerHTML = `
+          <div class="rv-summary-title">T2V Prompt</div>
+          <div class="rv-tip">Click to Display</div>
+        `;
+                    const pre = document.createElement('pre'); pre.textContent = p;
+                    det.appendChild(sum); det.appendChild(pre);
+                    body.appendChild(det);
+                }
+            });
+
+            // 列等高
+            showcaseRoot.querySelectorAll('.columns .column').forEach(col => {
+                col.style.display = 'flex'; col.style.flexDirection = 'column';
+            });
+        })();
+    </script>
+
+
+    <section class="hero is-light is-small">
+        <div class="hero-body has-text-centered">
+            <h1 class="title is-1 mathvista"><span class="mathvista" style="vertical-align: middle"><span
+                        class="mathvista">MME-CoF</span> Benchmark</span></h1>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="columns is-centered has-text-centered">
+                <div class="column is-four-fifths">
+                    <div class="content has-text-justified">
+                        <p>
+                            We curate <em>MME-CoF</em>, a compact benchmark providing a standardized taxonomy and an
+                            evaluation protocol aligned with CoF reasoning, enabling consistent and category-wise
+                            assessment beyond surface-level visual fidelity.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br><br>
+        <div class="container">
+            <div class="columns is-centered">
+                <div class="column" style="margin-right: -20rem;">
+                    <div class="content has-text-centered">
+                        <img src="static/images/radar.png" alt="evaluation radar map" style="max-width: 50%;" />
+                        <p>Evaluation Radar Map on <span class="mathvista">MME-CoF</span>.<br /></p>
+                    </div>
+                </div>
+                <div class="column" style="margin-right: -20rem;">
+                    <div class="content has-text-centered">
+                        <img src="static/images/category.png" alt="category distribution" style="max-width: 42%;" />
+                        <p>Category Distribution of <span class="mathvista">MME-CoF</span>.<br /></p>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="content has-text-centered">
+                        <img src="static/images/wordcloud.png" alt="wordcloud" style="max-width: 42%;" />
+                        <p>Word Cloud of <span class="mathvista">MME-CoF</span>.<br /></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="columns is-centered">
+                <div class="column is-full has-text-centered content">
+
+                    <h2 id="leaderboard" class="title is-3" id="leaderboard-model">Leaderboard</h2>
+                    <div class="content">
+                        <p class="mt-3">
+                            Model-level Overall and Per-dimension Performance on MME-CoF. Mean scores and standard
+                            deviations are reported on a 0–4 scale, as graded by Gemini-2.5-Pro.
+                        </p>
+
+                        <table class="js-sort-table leaderboard" id="results-model-dimension"
+                            style="border:none; outline:none; box-shadow:none;">
+                            <thead>
+                                <tr>
+                                    <th><strong>#</strong></th>
+                                    <th><strong>Model</strong></th>
+                                    <th><strong>Overall</strong></th>
+                                    <th><strong>Instruction<br>Alignment</strong></th>
+                                    <th><strong>Temporal<br>Consistency</strong></th>
+                                    <th><strong>Visual<br>Stability</strong></th>
+                                    <th><strong>Content<br>Fidelity</strong></th>
+                                    <th><strong>Focus<br>Relevance</strong></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td><b>Kling-v1</b></td>
+                                    <td>0.64&nbsp;&plusmn;&nbsp;0.91</td>
+                                    <td>0.01&nbsp;&plusmn;&nbsp;0.09</td>
+                                    <td>0.15&nbsp;&plusmn;&nbsp;0.75</td>
+                                    <td><b class="best-score-text">2.43&nbsp;&plusmn;&nbsp;1.86</b></td>
+                                    <td>0.21&nbsp;&plusmn;&nbsp;0.79</td>
+                                    <td>0.43&nbsp;&plusmn;&nbsp;1.07</td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td><b>Seedance-1.0-pro</b></td>
+                                    <td>1.41&nbsp;&plusmn;&nbsp;1.51</td>
+                                    <td>0.30&nbsp;&plusmn;&nbsp;0.86</td>
+                                    <td><b class="best-score-text">1.65&nbsp;&plusmn;&nbsp;1.57</b></td>
+                                    <td>2.00&nbsp;&plusmn;&nbsp;1.72</td>
+                                    <td>1.13&nbsp;&plusmn;&nbsp;1.65</td>
+                                    <td>1.98&nbsp;&plusmn;&nbsp;1.75</td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td><b>Veo-3.0-fast</b></td>
+                                    <td>1.44&nbsp;&plusmn;&nbsp;1.51</td>
+                                    <td>0.56&nbsp;&plusmn;&nbsp;1.09</td>
+                                    <td>1.37&nbsp;&plusmn;&nbsp;1.51</td>
+                                    <td>1.88&nbsp;&plusmn;&nbsp;1.73</td>
+                                    <td>1.10&nbsp;&plusmn;&nbsp;1.52</td>
+                                    <td>2.27&nbsp;&plusmn;&nbsp;1.69</td>
+                                </tr>
+                                <tr>
+                                    <td>4</td>
+                                    <td><b>Veo-3.0-preview</b></td>
+                                    <td>1.45&nbsp;&plusmn;&nbsp;1.50</td>
+                                    <td>0.54&nbsp;&plusmn;&nbsp;1.06</td>
+                                    <td>1.43&nbsp;&plusmn;&nbsp;1.53</td>
+                                    <td>1.89&nbsp;&plusmn;&nbsp;1.71</td>
+                                    <td>1.12&nbsp;&plusmn;&nbsp;1.49</td>
+                                    <td>2.26&nbsp;&plusmn;&nbsp;1.73</td>
+                                </tr>
+                                <tr>
+                                    <td>5</td>
+                                    <td><b>Sora-2-pro</b></td>
+                                    <td>1.66&nbsp;&plusmn;&nbsp;1.53</td>
+                                    <td>0.48&nbsp;&plusmn;&nbsp;0.96</td>
+                                    <td>1.36&nbsp;&plusmn;&nbsp;1.59</td>
+                                    <td>2.39&nbsp;&plusmn;&nbsp;1.65</td>
+                                    <td>1.64&nbsp;&plusmn;&nbsp;1.72</td>
+                                    <td>2.44&nbsp;&plusmn;&nbsp;1.73</td>
+                                </tr>
+                                <tr>
+                                    <td>6</td>
+                                    <td><b>Sora-2</b></td>
+                                    <td><b class="best-score-text">1.72&nbsp;&plusmn;&nbsp;1.59</b></td>
+                                    <td><b class="best-score-text">0.59&nbsp;&plusmn;&nbsp;1.12</b></td>
+                                    <td>1.52&nbsp;&plusmn;&nbsp;1.69</td>
+                                    <td>2.32&nbsp;&plusmn;&nbsp;1.68</td>
+                                    <td><b class="best-score-text">1.62&nbsp;&plusmn;&nbsp;1.75</b></td>
+                                    <td><b class="best-score-text">2.52&nbsp;&plusmn;&nbsp;1.71</b></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="columns is-centered">
+                <div class="column is-full has-text-centered content">
+                    <div class="content">
+                        <p class="mt-3">
+                            Per-category Scores on MME-CoF. Mean scores and standard deviations are reported on a 0–4
+                            scale, as graded by Gemini-2.5-Pro.
+                        </p>
+
+                        <table class="js-sort-table leaderboard" id="results-per-category"
+                            style="border:none; outline:none; box-shadow:none;">
+                            <thead>
+                                <tr>
+                                    <th><strong>#</strong></th>
+                                    <th><strong>Category</strong></th>
+                                    <th><strong>Kling-v1</strong></th>
+                                    <th><strong>Seedance-1.0&nbsp;Pro</strong></th>
+                                    <th><strong>Veo-3.0&nbsp;Fast</strong></th>
+                                    <th><strong>Veo-3.0&nbsp;Preview</strong></th>
+                                    <th><strong>Sora-2</strong></th>
+                                    <th><strong>Sora-2&nbsp;Pro</strong></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td><b>Visual Detail</b></td>
+                                    <td>0.72&nbsp;&plusmn;&nbsp;0.69</td>
+                                    <td>1.37&nbsp;&plusmn;&nbsp;1.39</td>
+                                    <td>1.10&nbsp;&plusmn;&nbsp;1.24</td>
+                                    <td>1.59&nbsp;&plusmn;&nbsp;1.68</td>
+                                    <td>1.14&nbsp;&plusmn;&nbsp;1.32</td>
+                                    <td>1.08&nbsp;&plusmn;&nbsp;1.89</td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td><b>Visual Trace</b></td>
+                                    <td>0.49&nbsp;&plusmn;&nbsp;0.65</td>
+                                    <td>1.23&nbsp;&plusmn;&nbsp;1.13</td>
+                                    <td>1.43&nbsp;&plusmn;&nbsp;1.26</td>
+                                    <td>1.48&nbsp;&plusmn;&nbsp;1.24</td>
+                                    <td>1.51&nbsp;&plusmn;&nbsp;1.37</td>
+                                    <td>1.75&nbsp;&plusmn;&nbsp;1.31</td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td><b>Real-world Spatial</b></td>
+                                    <td>0.77&nbsp;&plusmn;&nbsp;0.76</td>
+                                    <td>1.79&nbsp;&plusmn;&nbsp;1.53</td>
+                                    <td>2.07&nbsp;&plusmn;&nbsp;1.54</td>
+                                    <td>2.10&nbsp;&plusmn;&nbsp;1.46</td>
+                                    <td>1.84&nbsp;&plusmn;&nbsp;1.43</td>
+                                    <td>1.77&nbsp;&plusmn;&nbsp;1.35</td>
+                                </tr>
+                                <tr>
+                                    <td>4</td>
+                                    <td><b>3D Geometry</b></td>
+                                    <td>0.61&nbsp;&plusmn;&nbsp;0.58</td>
+                                    <td>1.95&nbsp;&plusmn;&nbsp;1.64</td>
+                                    <td>1.71&nbsp;&plusmn;&nbsp;1.54</td>
+                                    <td>1.54&nbsp;&plusmn;&nbsp;1.43</td>
+                                    <td>1.37&nbsp;&plusmn;&nbsp;1.49</td>
+                                    <td>1.42&nbsp;&plusmn;&nbsp;1.45</td>
+                                </tr>
+                                <tr>
+                                    <td>5</td>
+                                    <td><b>2D Geometry</b></td>
+                                    <td>0.49&nbsp;&plusmn;&nbsp;0.67</td>
+                                    <td>0.96&nbsp;&plusmn;&nbsp;1.11</td>
+                                    <td>1.18&nbsp;&plusmn;&nbsp;1.15</td>
+                                    <td>1.27&nbsp;&plusmn;&nbsp;1.20</td>
+                                    <td>1.77&nbsp;&plusmn;&nbsp;1.45</td>
+                                    <td>1.77&nbsp;&plusmn;&nbsp;1.21</td>
+                                </tr>
+                                <tr>
+                                    <td>6</td>
+                                    <td><b>Physics-based</b></td>
+                                    <td>0.60&nbsp;&plusmn;&nbsp;0.62</td>
+                                    <td>1.27&nbsp;&plusmn;&nbsp;1.25</td>
+                                    <td>1.44&nbsp;&plusmn;&nbsp;1.39</td>
+                                    <td>1.44&nbsp;&plusmn;&nbsp;1.35</td>
+                                    <td>2.13&nbsp;&plusmn;&nbsp;1.32</td>
+                                    <td>2.10&nbsp;&plusmn;&nbsp;1.33</td>
+                                </tr>
+                                <tr>
+                                    <td>7</td>
+                                    <td><b>Rotation</b></td>
+                                    <td>0.22&nbsp;&plusmn;&nbsp;0.34</td>
+                                    <td>2.30&nbsp;&plusmn;&nbsp;1.46</td>
+                                    <td>1.83&nbsp;&plusmn;&nbsp;1.44</td>
+                                    <td>1.60&nbsp;&plusmn;&nbsp;1.29</td>
+                                    <td>1.62&nbsp;&plusmn;&nbsp;1.37</td>
+                                    <td>1.44&nbsp;&plusmn;&nbsp;1.28</td>
+                                </tr>
+                                <tr>
+                                    <td>8</td>
+                                    <td><b>Table &amp; Chart</b></td>
+                                    <td>0.87&nbsp;&plusmn;&nbsp;0.72</td>
+                                    <td>0.71&nbsp;&plusmn;&nbsp;1.18</td>
+                                    <td>0.82&nbsp;&plusmn;&nbsp;1.30</td>
+                                    <td>0.96&nbsp;&plusmn;&nbsp;1.44</td>
+                                    <td>1.84&nbsp;&plusmn;&nbsp;1.61</td>
+                                    <td>1.48&nbsp;&plusmn;&nbsp;1.59</td>
+                                </tr>
+                                <tr>
+                                    <td>9</td>
+                                    <td><b>GUI</b></td>
+                                    <td>1.09&nbsp;&plusmn;&nbsp;0.51</td>
+                                    <td>0.70&nbsp;&plusmn;&nbsp;0.76</td>
+                                    <td>1.11&nbsp;&plusmn;&nbsp;1.09</td>
+                                    <td>1.18&nbsp;&plusmn;&nbsp;0.89</td>
+                                    <td>1.88&nbsp;&plusmn;&nbsp;1.64</td>
+                                    <td>1.52&nbsp;&plusmn;&nbsp;1.48</td>
+                                </tr>
+                                <tr>
+                                    <td>10</td>
+                                    <td><b>Object Counting</b></td>
+                                    <td>0.64&nbsp;&plusmn;&nbsp;0.58</td>
+                                    <td>1.15&nbsp;&plusmn;&nbsp;0.97</td>
+                                    <td>2.03&nbsp;&plusmn;&nbsp;1.42</td>
+                                    <td>1.84&nbsp;&plusmn;&nbsp;1.42</td>
+                                    <td>2.06&nbsp;&plusmn;&nbsp;1.48</td>
+                                    <td>1.86&nbsp;&plusmn;&nbsp;1.41</td>
+                                </tr>
+                                <tr>
+                                    <td>11</td>
+                                    <td><b>Embodied</b></td>
+                                    <td>0.80&nbsp;&plusmn;&nbsp;0.00</td>
+                                    <td>1.82&nbsp;&plusmn;&nbsp;1.67</td>
+                                    <td>1.33&nbsp;&plusmn;&nbsp;1.57</td>
+                                    <td>1.18&nbsp;&plusmn;&nbsp;1.46</td>
+                                    <td>1.30&nbsp;&plusmn;&nbsp;1.51</td>
+                                    <td>1.40&nbsp;&plusmn;&nbsp;1.42</td>
+                                </tr>
+                                <tr>
+                                    <td>12</td>
+                                    <td><b>Medical</b></td>
+                                    <td>1.15&nbsp;&plusmn;&nbsp;1.17</td>
+                                    <td>1.56&nbsp;&plusmn;&nbsp;1.41</td>
+                                    <td>0.27&nbsp;&plusmn;&nbsp;0.39</td>
+                                    <td>0.30&nbsp;&plusmn;&nbsp;0.58</td>
+                                    <td>2.08&nbsp;&plusmn;&nbsp;1.56</td>
+                                    <td>1.81&nbsp;&plusmn;&nbsp;1.42</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="bibtex" class="section">
+        <div class="container has-text-centered">
+            <h2 class="title is-3">BibTeX</h2>
+
+            <div class="box" style="background:#fafafa; border-radius:10px;">
+                <pre style="text-align:left; white-space:pre-wrap; padding:1.5rem; font-size:15px;">
+@article{guo2025mme-cof,
+  title={Are Video Models Ready as Zero-Shot Reasoners? An Empirical Study with the MME-COF Benchmark},
+  author={Guo, Ziyu and Chen, Xinyan and Zhang, Renrui and An, Ruichuan and Qi, Yu and Jiang, Dongzhi and Li, Xiangtai and Zhang, Manyuan and Li, Hongsheng and Heng, Pheng-Ann},
+  journal={arXiv preprint arXiv:2510.26802},
+  year={2025}
+}
+      </pre>
+
+                <!-- Copy Button -->
+                <button id="copyBibtex" class="button is-light is-small" style="margin-top:-10px;">
+                    Copy BibTeX
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        document.getElementById("copyBibtex").addEventListener("click", function () {
+            const text = `@article{guo2025mme-cof,
+    title={Are Video Models Ready as Zero-Shot Reasoners? An Empirical Study with the MME-COF Benchmark},
+    author={Guo, Ziyu and Chen, Xinyan and Zhang, Renrui and An, Ruichuan and Qi, Yu and Jiang, Dongzhi and Li, Xiangtai and Zhang, Manyuan and Li, Hongsheng and Heng, Pheng-Ann},
+    journal={arXiv preprint arXiv:2510.26802},
+    year={2025}
+  }`;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById("copyBibtex");
+                btn.textContent = "Copied!";
+                setTimeout(() => btn.textContent = "Copy BibTeX", 1200);
+            });
+        });
+    </script>
+
+
+
+    <section>
+        <div class="section" id="org-banners" style="display:flex">
+            <a href="https://www.cuhk.edu.hk/chinese/index.html" target="_blank" rel="external">
+                <img class="center-block org-banner" src="static/images/cuhk.png">
+            </a>
+            <a href="https://www.pku.edu.cn/" target="_blank" rel="external" style="margin-left: 1rem;">
+                <img class="center-block org-banner" src="static/images/pku.png">
+            </a>
+            <a href="https://www.neu.edu.cn/" target="_blank" rel="external" style="margin-left: 1rem;">
+                <img class="center-block org-banner" src="static/images/NEU.png">
+            </a>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="content has-text-centered"></div>
+        <div class="columns is-centered">
+            <div class="column is-8">
+                <div class="content">
+                    <p>
+                        This website is licensed under a
+                        <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+                            Commons Attribution-ShareAlike 4.0 International License</a>.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+
+</html>
