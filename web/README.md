@@ -4,7 +4,6 @@
 
 ```
 WEB/
-├── ui.html              # 原始参考文件
 ├── template.html        # 新的模板文件
 ├── README.md            # 本说明文件
 ├── CONFIG.md            # 配置文件说明
