@@ -61,8 +61,8 @@ Results will be saved to `eval_output/result.json` and aggregated scores to `eva
 We curate GGBench, a comprehensive benchmark providing a standardized taxonomy and an evaluation protocol, enabling consistent and category-wise assessment beyond surface-level metrics.
 
 <p align="center">
-  <img src="web/static/images/timu_type3_01.png" alt="GGBench radar evaluation" width="35%">
-  <img src="web/static/images/data_analysis_01.png" alt="GGBench category distribution" width="45%">
+  <img src="static/images/timu_type3_01.png" alt="GGBench radar evaluation" width="35%">
+  <img src="static/images/data_analysis_01.png" alt="GGBench category distribution" width="45%">
 </p>
 
 
