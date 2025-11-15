@@ -8,7 +8,7 @@ Official repository for the project "A Geometric Generative Reasoning Benchmark 
 ## 📖 Study Overview
 
 <p align="center">
-  <img src="web/static/images/teaser.png" alt="Study overview" width="70%">
+  <img src="static/images/teaser.png" alt="Study overview" width="70%">
 </p>
 
 <p align="center"><em>Overview of GGBench: A Geometric Generative Reasoning Benchmark for Unified Multimodal Models.</em></p>
