@@ -2,7 +2,7 @@
 
 Official repository for the project "A Geometric Generative Reasoning Benchmark for Unified Multimodal Models"
 
-[🌍 [Homepage](https://opendatalab-raiser.github.io/GGBench/)] [📜 [OpenReview Paper](https://openreview.net/forum?id=y68PHsVGYp)] [🤗 [HF Datasets](https://huggingface.co/datasets/opendatalab-raiser/GGBench)] [💻 [GitHub Code](https://github.com/opendatalab-raiser/GGBench)]
+[🌍 [Homepage](https://opendatalab-raiser.github.io/GGBench/)] [📜 [OpenReview Paper](#)] [🤗 [HF Datasets](https://huggingface.co/datasets/opendatalab-raiser/GGBench)] [💻 [GitHub Code](https://github.com/opendatalab-raiser/GGBench)]
 
 
 ## 📖 Study Overview
